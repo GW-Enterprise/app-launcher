@@ -1,74 +1,118 @@
-# compose.yml
 services:
-  # INFRAESTRUCTURA
-  nats:
-    image: nats:2.10.12-alpine
+  # --- INFRAESTRUCTURA COMÚN ---
+  nats-server:
+    image: nats:2.10-alpine
     container_name: nats-server
+    networks:
+      - gateway-app
     ports:
       - "4222:4222"
       - "8222:8222"
-    networks:
-      - erp-network
 
-  postgres:
-    image: postgres:15.6-alpine
-    container_name: postgres-db
+  # --- BASES DE DATOS INDEPENDIENTES ---
+  # db-tickets:
+  #   image: postgres:15-alpine
+  #   container_name: db-tickets
+  #   networks:
+  #     - gateway-app
+  #   environment:
+  #     POSTGRES_USER: admin
+  #     POSTGRES_PASSWORD: your_strong_password
+  #     POSTGRES_DB: tickets_db
+  #   volumes:
+  #     - ./postgres_data_tickets:/var/lib/postgresql/data
+  #   ports:
+  #     - "5433:5432"
+
+  db-auth:
+    image: postgres:15-alpine
+    container_name: db-auth
+    networks:
+      - gateway-app
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: your_strong_password
+      POSTGRES_DB: auth_db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ./postgres_data_auth:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
-    networks:
-      - erp-network
+      - "5434:5432"
 
-  # MICROSERVICIOS (Submódulos)
+  # --- MICROSERVICIOS ---
   api-gateway:
     build:
       context: ./api-gateway
-      dockerfile: Dockerfile
+      target: development
     container_name: api-gateway
-    environment:
-      - NATS_URL=nats://nats:4222
+    networks:
+      - gateway-app
     ports:
       - "3000:3000"
-    depends_on:
-      - nats
-    networks:
-      - erp-network
-
-  tickets-service:
-    build:
-      context: ./tickets-service
-      dockerfile: Dockerfile
-    container_name: tickets-ms
     environment:
-      - NATS_URL=nats://nats:4222
-      - DATABASE_URL=postgresql://admin:your_strong_password@postgres:5432/tickets_db
+      - NATS_URL=nats://nats-server:4222
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
     depends_on:
-      - nats
-      - postgres
-    networks:
-      - erp-network
+      - nats-server
 
-  # FRONTEND (Submódulo)
-  frontend:
+  auth-service:
     build:
-      context: ./frontend-app
-      dockerfile: Dockerfile
-    container_name: nextjs-app
-    ports:
-      - "3001:3000"
-    depends_on:
-      - api-gateway
+      context: ./auth-service
+      target: development
+    container_name: auth-service
     networks:
-      - erp-network
+      - gateway-app
+    environment:
+      - NATS_URL=nats://nats-server:4222
+      - DATABASE_URL=postgresql://admin:your_strong_password@db-auth:5432/auth_db
+      - JWT_SECRET=cambiame_en_produccion
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+    depends_on:
+      - nats-server
+      - db-auth
 
+  # tickets-service:
+  #   build:
+  #     context: ./tickets-service
+  #     target: development
+  #   container_name: tickets-service
+  #   networks:
+  #     - gateway-app
+  #   environment:
+  #     - NATS_URL=nats://nats-server:4222
+  #     - DATABASE_URL=postgresql://admin:your_strong_password@db-tickets:5432/tickets_db
+  #   volumes:
+  #     - ./tickets-service:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     - nats-server
+  #     - db-tickets
+
+  # --- FRONTEND ---
+  # frontend-app:
+  #   build:
+  #     context: ./frontend-app
+  #   container_name: frontend-app
+  #   networks:
+  #     - gateway-app
+  #   ports:
+  #     - "3001:3000"
+  #   volumes:
+  #     - ./frontend-app:/app
+  #     - /app/node_modules
+  #     - /app/.next
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://localhost:3000/api
+  #   command: pnpm run dev
+
+# --- CONFIGURACIÓN DE RED Y VOLÚMENES ---
 networks:
-  erp-network:
+  gateway-app:
     driver: bridge
 
 volumes:
-  postgres_data:
+  postgres_data_tickets:
+  postgres_data_auth:
