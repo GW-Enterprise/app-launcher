@@ -1,0 +1,74 @@
+# compose.yml
+services:
+  # INFRAESTRUCTURA
+  nats:
+    image: nats:2.10.12-alpine
+    container_name: nats-server
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - erp-network
+
+  postgres:
+    image: postgres:15.6-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: your_strong_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - erp-network
+
+  # MICROSERVICIOS (Submódulos)
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      - NATS_URL=nats://nats:4222
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nats
+    networks:
+      - erp-network
+
+  tickets-service:
+    build:
+      context: ./tickets-service
+      dockerfile: Dockerfile
+    container_name: tickets-ms
+    environment:
+      - NATS_URL=nats://nats:4222
+      - DATABASE_URL=postgresql://admin:your_strong_password@postgres:5432/tickets_db
+    depends_on:
+      - nats
+      - postgres
+    networks:
+      - erp-network
+
+  # FRONTEND (Submódulo)
+  frontend:
+    build:
+      context: ./frontend-app
+      dockerfile: Dockerfile
+    container_name: nextjs-app
+    ports:
+      - "3001:3000"
+    depends_on:
+      - api-gateway
+    networks:
+      - erp-network
+
+networks:
+  erp-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

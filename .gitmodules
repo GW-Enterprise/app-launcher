@@ -1,0 +1,9 @@
+[submodule "api-gateway"]
+	path = api-gateway
+	url = https://github.com/GW-Enterprise/api-gateway.git
+[submodule "tickets-service"]
+	path = tickets-service
+	url = https://github.com/GW-Enterprise/tickets-service.git
+[submodule "auth-service"]
+	path = auth-service
+	url = https://github.com/GW-Enterprise/auth-service.git
