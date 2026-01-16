@@ -100,7 +100,8 @@ services:
       - ./api-gateway/:/app
       - /app/node_modules
     depends_on:
-      - nats-server
+      nats-server:
+        condition: service_healthy
     restart: always
     healthcheck:
       # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]  # Ajusta el puerto si es necesario
@@ -129,8 +130,10 @@ services:
       - ./tickets-service/:/app
       - /app/node_modules
     depends_on:
-      - nats-server
-      - db-tickets
+      nats-server:
+        condition: service_healthy
+      db-tickets:
+        condition: service_healthy
     restart: always
     healthcheck:
       # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]  # Ajusta el puerto si es necesario
@@ -159,8 +162,10 @@ services:
       - ./auth-service/:/app
       - /app/node_modules
     depends_on:
-      - nats-server
-      - db-auth
+      nats-server:
+        condition: service_healthy
+      db-auth:
+        condition: service_healthy
     restart: always
     healthcheck:
       # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]  # Ajusta el puerto si es necesario
