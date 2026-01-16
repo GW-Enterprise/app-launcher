@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
+    -- 1. Crear usuario de Replicación (útil si ambos tendrán espejos)
+    CREATE ROLE $REPLICATION_USER WITH REPLICATION LOGIN PASSWORD '$REPLICATION_PASSWORD';
+
+    CREATE USER $DB_SPECIFIC_USER WITH PASSWORD '$DB_SPECIFIC_PASSWORD';
+    
+    ALTER DATABASE $POSTGRES_DB OWNER TO $DB_SPECIFIC_USER;
+EOSQL

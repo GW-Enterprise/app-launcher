@@ -9,10 +9,18 @@ services:
       - "4222:4222"
       - "8222:8222"
     restart: always
+    command: ["-m", "8222"] # Activa el monitoreo en el puerto 8222
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # --- BASES DE DATOS INDEPENDIENTES ---
 
   db-auth:
+    env_file: 
+      - .env.prod
     container_name: db-auth
     image: postgres:16.11-alpine3.23
     restart: always
@@ -38,6 +46,8 @@ services:
       retries: 5
       
   db-tickets:
+    env_file: 
+      - .env.prod
     container_name: db-tickets
     image: postgres:16.11-alpine3.23
     restart: always
@@ -62,32 +72,15 @@ services:
       timeout: 5s
       retries: 5
 
-  pg-admin:
-    depends_on:
-      - db-auth
-    container_name: pg-admin
-    image: dpage/pgadmin4:9.11.0
-    ports:
-      - "8080:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    networks:
-      - gateway-app
-    volumes:
-      - ./pgadmin_data:/var/lib/pgadmin
-    
   # --- MICROSERVICIOS ---
   api-gateway:
-    env_file: .env.development
     build:
       context: ./api-gateway
-      dockerfile: Dockerfile
-      # target: ${STAGE}
-      target: dev
+      target: prod
+    env_file: 
+      - .env.prod
     container_name: api-gateway
     image: levirolea/api-gateway:${APP_VERSION}
-    # image: levirolea/api-gateway:1.0.2
     networks:
       - gateway-app
     ports:
@@ -96,94 +89,63 @@ services:
       NATS_URL: ${NATS_URL}
       APP_VERSION: ${APP_VERSION}
       API_GATEWAY_PORT: ${API_GATEWAY_PORT}
-    volumes:
-      - ./api-gateway/:/app
-      - /app/node_modules
     depends_on:
       - nats-server
     restart: always
     healthcheck:
-      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]  # Ajusta el puerto si es necesario
       interval: 10s
       timeout: 5s
       retries: 5
 
   tickets-service:
-    env_file: .env.development
+    env_file: 
+      - .env.prod
     container_name: tickets-service
     build:
       context: ./tickets-service
-      dockerfile: Dockerfile
-      # target: ${STAGE}
-      target: dev
+      target: prod
     image: levirolea/tickets-service:${APP_VERSION}
-    # image: levirolea/tickets-service:1.0.0
     networks:
       - gateway-app
     environment:
       NATS_URL: ${NATS_URL}
       APP_VERSION: ${APP_VERSION}
-      PORT: ${TICKETS_SERVICE_PORT}
       DATABASE_URL: postgresql://${APP_USER_TICKETS}:${APP_USER_TICKETS_PASSWORD}@db-tickets:5432/${POSTGRES_DB_TICKETS}
-    volumes:
-      - ./tickets-service/:/app
-      - /app/node_modules
     depends_on:
-      - nats-server
-      - db-tickets
+      nats-server:
+        condition: service_healthy
+      db-tickets:
+        condition: service_healthy
     restart: always
     healthcheck:
-      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]  # Ajusta el puerto si es necesario
       interval: 10s
       timeout: 5s
       retries: 5
 
   auth-service:
-    env_file: .env.development
+    env_file: 
+      - .env.prod
     container_name: auth-service
     build:
       context: ./auth-service
-      dockerfile: Dockerfile
-      # target: ${STAGE}
-      target: dev
+      target: prod
     image: levirolea/auth-service:${APP_VERSION}
-    # image: levirolea/auth-service:1.0.0
     networks:
       - gateway-app
     environment:
       NATS_URL: ${NATS_URL}
       APP_VERSION: ${APP_VERSION}
-      PORT: ${AUTH_SERVICE_PORT}
       DATABASE_URL: postgresql://${APP_USER_AUTH}:${APP_USER_AUTH_PASSWORD}@db-auth:5432/${POSTGRES_DB_AUTH}
-    volumes:
-      - ./auth-service/:/app
-      - /app/node_modules
     depends_on:
-      - nats-server
-      - db-auth
+      nats-server:
+        condition: service_healthy
+      db-auth:
+        condition: service_healthy
     restart: always
     healthcheck:
-      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]  # Ajusta el puerto si es necesario
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # --- FRONTEND ---
-  # frontend-app:
-  #   build:
-  #     context: ./frontend-app
-  #   container_name: frontend-app
-  #   networks:
-  #     - gateway-app
-  #   ports:
-  #     - "3001:3000"
-  #   volumes:
-  #     - ./frontend-app:/app
-  #     - /app/node_modules
-  #     - /app/.next
-  #   environment:
-  #     - NEXT_PUBLIC_API_URL=http://localhost:3000/api
-  #   command: pnpm run dev
 
 # --- CONFIGURACIÓN DE RED Y VOLÚMENES ---
 networks:

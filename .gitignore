@@ -1,0 +1,7 @@
+node_modules
+pnpm-lock.yaml
+postgres*
+.env
+pgadmin_data
+.env.prod*
+.env.dev*
