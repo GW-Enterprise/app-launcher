@@ -157,7 +157,7 @@ services:
     environment:
       NATS_SERVERS: ${NATS_SERVERS}
       APP_VERSION: ${APP_VERSION}
-      PORT: ${AUTH_SERVICE_PORT}
+      # PORT: ${AUTH_SERVICE_PORT}
       DATABASE_URL: postgresql://${APP_USER_AUTH}:${APP_USER_AUTH_PASSWORD}@db-auth:5432/${POSTGRES_DB_AUTH}
     volumes:
       - ./auth-service/:/app
