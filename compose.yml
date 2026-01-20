@@ -96,10 +96,11 @@ services:
     environment:
       NATS_SERVERS: ${NATS_SERVERS}
       APP_VERSION: ${APP_VERSION}
-      API_GATEWAY_PORT: ${API_GATEWAY_PORT}
+      PORT: ${API_GATEWAY_PORT}
     volumes:
       - ./api-gateway/:/app
-      - /app/node_modules
+      # - /app/node_modules
+      - api-gateway-modules:/app/node_modules
     depends_on:
       nats-server:
         condition: service_started
@@ -129,7 +130,8 @@ services:
       DATABASE_URL: postgresql://${APP_USER_TICKETS}:${APP_USER_TICKETS_PASSWORD}@db-tickets:5432/${POSTGRES_DB_TICKETS}
     volumes:
       - ./tickets-service/:/app
-      - /app/node_modules
+      # - /app/node_modules
+      - tickets-service-modules:/app/node_modules
     depends_on:
       nats-server:
         condition: service_started
@@ -161,7 +163,8 @@ services:
       DATABASE_URL: postgresql://${APP_USER_AUTH}:${APP_USER_AUTH_PASSWORD}@db-auth:5432/${POSTGRES_DB_AUTH}
     volumes:
       - ./auth-service/:/app
-      - /app/node_modules
+      # - /app/node_modules
+      - auth-service-modules:/app/node_modules
     depends_on:
       nats-server:
         condition: service_started
@@ -195,5 +198,10 @@ services:
 networks:
   gateway-app:
     driver: bridge
+
+volumes:
+  api-gateway-modules:
+  tickets-service-modules:
+  auth-service-modules:
 
 name: gateway-app
