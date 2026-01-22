@@ -15,6 +15,7 @@ services:
 
   db-auth:
     container_name: db-auth
+    env_file: .env.development
     image: postgres:16.11-alpine3.23
     restart: always
     networks:
@@ -40,6 +41,7 @@ services:
       
   db-tickets:
     container_name: db-tickets
+    env_file: .env.development
     image: postgres:16.11-alpine3.23
     restart: always
     networks:
@@ -67,6 +69,7 @@ services:
     depends_on:
       - db-auth
     container_name: pg-admin
+    env_file: .env.development
     image: dpage/pgadmin4:9.11.0
     ports:
       - "8080:80"
