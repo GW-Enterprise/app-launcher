@@ -9,6 +9,9 @@ services:
       - "4222:4222"
       - "8222:8222"
     restart: always
+    command: ["-js", "-sd", "/data"]
+    volumes:
+      - ./nats_data:/data
     
 
   # --- BASES DE DATOS INDEPENDIENTES ---
@@ -35,9 +38,10 @@ services:
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d postgres"]
-      interval: 5s
+      interval: 15s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
       
   db-tickets:
     container_name: db-tickets
@@ -61,9 +65,10 @@ services:
       - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d postgres"]
-      interval: 5s
+      interval: 15s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   pg-admin:
     depends_on:
@@ -206,5 +211,6 @@ volumes:
   api-gateway-modules:
   tickets-service-modules:
   auth-service-modules:
+  nats_data:
 
 name: gateway-app
