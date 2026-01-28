@@ -85,21 +85,21 @@ services:
       retries: 10
       start_period: 30s
 
-  pg-admin:
-    depends_on:
-      - db-auth
-    container_name: pg-admin
-    env_file: .env.development
-    image: dpage/pgadmin4:9.11.0
-    ports:
-      - "8080:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    networks:
-      - gateway-app
-    volumes:
-      - ./pgadmin_data:/var/lib/pgadmin
+  # pg-admin:
+  #   depends_on:
+  #     - db-auth
+  #   container_name: pg-admin
+  #   env_file: .env.development
+  #   image: dpage/pgadmin4:9.11.0
+  #   ports:
+  #     - "8080:80"
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+  #   networks:
+  #     - gateway-app
+  #   volumes:
+  #     - ./pgadmin_data:/var/lib/pgadmin
     
   # --- MICROSERVICIOS ---
   api-gateway:
@@ -155,6 +155,7 @@ services:
       - ./tickets-service/:/app
       # - /app/node_modules
       - tickets-service-modules:/app/node_modules
+      - /app/generated
     depends_on:
       nats-server:
         condition: service_started
@@ -188,6 +189,7 @@ services:
       - ./auth-service/:/app
       # - /app/node_modules
       - auth-service-modules:/app/node_modules
+      - /app/generated
     depends_on:
       nats-server:
         condition: service_started
