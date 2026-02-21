@@ -7,3 +7,6 @@
 [submodule "auth-service"]
 	path = auth-service
 	url = https://github.com/GW-Enterprise/auth-service.git
+[submodule "frontend-app"]
+	path = frontend-app
+	url = https://github.com/GW-Enterprise/frontend-app.git
