@@ -5,3 +5,15 @@ postgres*
 pgadmin_data
 .env.prod*
 .env.dev*
+
+# Claude Code / Anthropic / AI Agents settings
+.claude/
+.claude_session/
+claude_config.json
+.agents/
+.agent/
+.gemini/
+.anthropic/
+.cursor/
+CLAUDE.md
+skills-lock.json
