@@ -149,6 +149,7 @@ services:
       APP_VERSION: ${APP_VERSION}
       PORT: ${TICKETS_SERVICE_PORT}
       DATABASE_URL: postgresql://${APP_USER_TICKETS}:${APP_USER_TICKETS_PASSWORD}@db-tickets:5432/${POSTGRES_DB_TICKETS}
+      TZ: America/Mexico_City
     volumes:
       - ./tickets-service/:/app
       - /app/node_modules
