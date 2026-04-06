@@ -15,5 +15,7 @@ claude_config.json
 .gemini/
 .anthropic/
 .cursor/
+.windsurf/
 CLAUDE.md
 skills-lock.json
+
