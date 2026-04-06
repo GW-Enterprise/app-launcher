@@ -10,3 +10,6 @@
 [submodule "frontend-app"]
 	path = frontend-app
 	url = https://github.com/GW-Enterprise/frontend-app.git
+[submodule "notifications-service"]
+	path = notifications-service
+	url = https://github.com/GW-Enterprise/notifications-service.git
