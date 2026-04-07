@@ -109,7 +109,6 @@ services:
       target: dev
     container_name: api-gateway
     image: levirolea/api-gateway:${APP_VERSION}
-    # image: levirolea/api-gateway:1.0.2
     networks:
       - gateway-app
     ports:
@@ -141,19 +140,17 @@ services:
       # target: ${STAGE}
       target: dev
     image: levirolea/tickets-service:${APP_VERSION}
-    # image: levirolea/tickets-service:1.0.0
     networks:
       - gateway-app
     environment:
       NATS_SERVERS: ${NATS_SERVERS}
       APP_VERSION: ${APP_VERSION}
       PORT: ${TICKETS_SERVICE_PORT}
-      DATABASE_URL: postgresql://${APP_USER_TICKETS}:${APP_USER_TICKETS_PASSWORD}@db-tickets:5432/${POSTGRES_DB_TICKETS}
+      DATABASE_URL: ${DATABASE_URL_TICKETS}
       TZ: America/Mexico_City
     volumes:
       - ./tickets-service/:/app
       - /app/node_modules
-      # - tickets-service-modules:/app/node_modules
       - /app/generated
     depends_on:
       nats-server:
@@ -162,7 +159,7 @@ services:
         condition: service_healthy
     restart: always
     healthcheck:
-      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]  # Ajusta el puerto si es necesario
+      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -176,18 +173,15 @@ services:
       # target: ${STAGE}
       target: dev
     image: levirolea/auth-service:${APP_VERSION}
-    # image: levirolea/auth-service:1.0.0
     networks:
       - gateway-app
     environment:
       NATS_SERVERS: ${NATS_SERVERS}
       APP_VERSION: ${APP_VERSION}
-      # PORT: ${AUTH_SERVICE_PORT}
-      DATABASE_URL: postgresql://${APP_USER_AUTH}:${APP_USER_AUTH_PASSWORD}@db-auth:5432/${POSTGRES_DB_AUTH}
+      DATABASE_URL: ${DATABASE_URL_AUTH}
     volumes:
       - ./auth-service/:/app
       - /app/node_modules
-      # - auth-service-modules:/app/node_modules
       - /app/generated
     depends_on:
       nats-server:
@@ -196,7 +190,37 @@ services:
         condition: service_healthy
     restart: always
     healthcheck:
-      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]  # Ajusta el puerto si es necesario
+      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"] 
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notifications-service:
+    env_file: .env.development
+    container_name: notifications-service
+    build:
+      context: ./notifications-service
+      dockerfile: Dockerfile
+      target: dev
+    image: levirolea/notifications-service:${APP_VERSION}
+    networks:
+      - gateway-app
+    environment:
+      NATS_SERVERS: ${NATS_SERVERS}
+      APP_VERSION: ${APP_VERSION}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      MAIL_FROM: ${MAIL_FROM}
+    volumes:
+      - ./notifications-service/:/app
+      - /app/node_modules
+    depends_on:
+      nats-server:
+        condition: service_started
+    restart: always
+    healthcheck:
       interval: 10s
       timeout: 5s
       retries: 5
@@ -224,9 +248,6 @@ networks:
     driver: bridge
 
 volumes:
-  # api-gateway-modules:
-  # tickets-service-modules:
-  # auth-service-modules:
   nats_data:
 
 name: gateway-app
