@@ -21,7 +21,13 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx && \
-            git pull origin main && \
-            git submodule update --init --recursive && \
+            # Entrar usando la ruta desde tu carpeta personal
+            cd ~/var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
+
+            # Verificamos dónde estamos para estar seguros
+            pwd
+
+            # Comandos de Git y Docker
+            git pull origin main
+            git submodule update --init --recursive
             docker-compose up -d --build
