@@ -213,6 +213,12 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASS: ${SMTP_PASS}
       MAIL_FROM: ${MAIL_FROM}
+      IMAP_HOST: ${IMAP_HOST}
+      IMAP_PORT: ${IMAP_PORT}
+      IMAP_USER: ${IMAP_USER}
+      IMAP_TENANT_ID: ${IMAP_TENANT_ID}
+      IMAP_CLIENT_ID: ${IMAP_CLIENT_ID}
+      IMAP_CLIENT_SECRET: ${IMAP_CLIENT_SECRET}
     volumes:
       - ./notifications-service/:/app
       - /app/node_modules
