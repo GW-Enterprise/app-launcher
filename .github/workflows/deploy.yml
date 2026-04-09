@@ -20,14 +20,13 @@ jobs:
           host: ${{ secrets.HOST }}
           username: admin2
           key: ${{ secrets.SSH_KEY }}
+          port: 22
           script: |
-            # Entrar usando la ruta desde tu carpeta personal
-            cd ~/var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
+            cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-            # Verificamos dónde estamos para estar seguros
+
             pwd
 
-            # Comandos de Git y Docker
+            # Git pull y Docker
             git pull origin main
-            git submodule update --init --recursive
             docker-compose up -d --build
