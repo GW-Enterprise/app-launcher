@@ -22,14 +22,20 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-            sudo git config --global --add safe.directory '*'
+            TARGET="/var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx"
 
-            sudo git pull origin main
-            sudo git submodule update --init --recursive
 
-            sudo docker-compose down || true
-            sudo docker-compose up -d --build
+            cd $TARGET && ls -la
 
-            sudo docker image prune -f
+
+            sudo -n git config --global --add safe.directory '*'
+            sudo -n git pull origin main
+            sudo -n git submodule update --init --recursive
+
+
+            sudo -n docker-compose -p gateway-nexus up -d --build
+
+
+            echo "Verificando contenedores levantados:"
+            sudo -n docker ps --filter "name=gateway-nexus"
