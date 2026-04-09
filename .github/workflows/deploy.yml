@@ -25,16 +25,12 @@ jobs:
             # 1. Navegar a la carpeta
             cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-            # 2. Git (admin2 tiene permiso aquí)
+
             git config --global --add safe.directory '*'
             git pull origin main
             git submodule update --init --recursive
 
-            # 3. Docker (Usaremos 'sudo docker compose' que es el estándar actual)
-            # El flag -f apunta a tu archivo real
-            sudo -n docker compose -f compose.yaml -p nexus-matrix down || true
-            sudo -n docker compose -f compose.yaml -p nexus-matrix up -d --build
-
-            # 4. Verificación
+            sudo -n docker compose -f compose.yml -p nexus-matrix down || true
+            sudo -n docker compose -f compose.yml -p nexus-matrix up -d --build
             echo "--- ESTADO DE CONTENEDORES ---"
             sudo -n docker ps --filter "name=nexus-matrix"
