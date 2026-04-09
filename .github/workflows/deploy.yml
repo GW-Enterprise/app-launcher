@@ -23,17 +23,16 @@ jobs:
           port: 22
           script: |
 
-            TARGET="/var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx"
+            cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-
-            cd $TARGET            
 
             git pull origin main
             git submodule update --init --recursive
 
-            sudo -n docker-compose -f compose.yaml -p nexus-matrix down || true
+
+            # Usamos -n para que no se quede colgado pidiendo password
             sudo -n docker-compose -f compose.yaml -p nexus-matrix up -d --build
 
 
-            echo "--- LISTA DE CONTENEDORES ---"
+            echo "--- ESTADO DE CONTENEDORES ---"
             sudo -n docker ps --filter "name=nexus-matrix"
