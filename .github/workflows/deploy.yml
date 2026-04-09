@@ -22,11 +22,11 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
+            cd ~/httpdocs/nexus.gatewayfabrication.com.mx || cd ~/httpdocs || cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
 
-            pwd
+            git config --global --add safe.directory '*'
 
-            # Git pull y Docker
+            # 3. Actualizamos y levantamos
             git pull origin main
             docker-compose up -d --build
