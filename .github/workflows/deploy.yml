@@ -22,19 +22,17 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            # 1. Entrar a la carpeta
+            # 1. Entrar a la carpeta (Ruta directa)
             cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-            # 2. Actualizar código
-            sudo -n git config --global --add safe.directory '*'
-            sudo -n git pull origin main
-            sudo -n git submodule update --init --recursive
+            # 2. Git (Sin sudo para evitar líos de llaves de root)
+            git config --global --add safe.directory '*'
+            git pull origin main
+            git submodule update --init --recursive
 
+            # 3. Docker (Aquí SI usamos sudo)
+            sudo -n docker-compose -f compose.yaml -p nexus-matrix down || true
+            sudo -n docker-compose -f compose.yaml -p nexus-matrix up -d --build
 
-            sudo -n docker-compose -f compose.yml -p nexus-matrix down || true
-            sudo -n docker-compose -f compose.yml -p nexus-matrix up -d --build
-
-            # 4. Limpieza y Verificación
-            sudo -n docker image prune -f
-            echo "--- CONTENEDORES LEVANTADOS ---"
+            # 4. Verificación
             sudo -n docker ps --filter "name=nexus-matrix"
