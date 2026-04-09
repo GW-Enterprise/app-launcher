@@ -1,0 +1,27 @@
+name: Deploy Nexus Matrix
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del Orquestador
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ejecutar comandos en IONOS via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx && \
+            git pull origin main && \
+            git submodule update --init --recursive && \
+            docker-compose up -d --build
