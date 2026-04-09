@@ -22,20 +22,22 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
+            cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-            TARGET="/var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx"
+            echo "--- ¿QUÉ ARCHIVOS HAY AQUÍ? ---"
+            ls -la
 
+            echo "--- CONTENIDO DEL COMPOSE (PRIMERAS 10 LÍNEAS) ---"
+            head -n 10 docker-compose.yml || echo "EL ARCHIVO NO EXISTE"
 
-            cd $TARGET && ls -la
+            # 2. Validar el compose antes de ejecutarlo
+            echo "--- VALIDACIÓN DE DOCKER COMPOSE ---"
+            sudo -n docker-compose config
 
+            # 3. Ejecutar el despliegue capturando errores
+            echo "--- INICIANDO DESPLIEGUE ---"
+            sudo -n docker-compose -p gateway-nexus up -d --build 2>&1
 
-            sudo -n git config --global --add safe.directory '*'
-            sudo -n git pull origin main
-            sudo -n git submodule update --init --recursive
-
-
-            sudo -n docker-compose -p gateway-nexus up -d --build
-
-
-            echo "Verificando contenedores levantados:"
-            sudo -n docker ps --filter "name=gateway-nexus"
+            # 4. Verificación final de procesos
+            echo "--- LISTA TOTAL DE CONTENEDORES ---"
+            sudo -n docker ps -a
