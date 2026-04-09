@@ -22,18 +22,14 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
+            cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-            cd ~/nexus.gatewayfabrication.com.mx || cd ~/httpdocs/nexus.gatewayfabrication.com.mx || cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
+            sudo git config --global --add safe.directory '*'
 
-            git config --global --add safe.directory '*'
+            sudo git pull origin main
+            sudo git submodule update --init --recursive
 
-            git pull origin main
-            git submodule update --init --recursive
+            sudo docker-compose down || true
+            sudo docker-compose up -d --build
 
-            # Despliegue con Docker
-            # Usamos --env-file .env para asegurar que tome tus variables de producción
-            docker-compose down
-            docker-compose up -d --build
-
-            # Limpieza de imágenes "huérfanas" para ahorrar espacio en IONOS
-            docker image prune -f
+            sudo docker image prune -f
