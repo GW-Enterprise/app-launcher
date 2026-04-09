@@ -18,7 +18,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
+          username: admin2
           key: ${{ secrets.SSH_KEY }}
           script: |
             # Entrar usando la ruta desde tu carpeta personal
