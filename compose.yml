@@ -17,7 +17,7 @@ services:
 
   db-auth:
     container_name: db-auth
-    env_file: .env.development
+    env_file: .env
     image: postgres:16.11-alpine3.23
     restart: always
     networks:
@@ -51,7 +51,7 @@ services:
 
   db-tickets:
     container_name: db-tickets
-    env_file: .env.development
+    env_file: .env
     image: postgres:16.11-alpine3.23
     restart: always
     networks:
@@ -83,25 +83,9 @@ services:
       retries: 10
       start_period: 30s
 
-  # pg-admin:
-  #   depends_on:
-  #     - db-auth
-  #   container_name: pg-admin
-  #   env_file: .env.development
-  #   image: dpage/pgadmin4:9.11.0
-  #   ports:
-  #     - "8080:80"
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-  #   networks:
-  #     - gateway-app
-  #   volumes:
-  #     - ./pgadmin_data:/var/lib/pgadmin
-
   # --- MICROSERVICIOS ---
   api-gateway:
-    env_file: .env.development
+    env_file: .env
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
@@ -132,7 +116,7 @@ services:
       retries: 5
 
   tickets-service:
-    env_file: .env.development
+    env_file: .env
     container_name: tickets-service
     build:
       context: ./tickets-service
@@ -165,7 +149,7 @@ services:
       retries: 5
 
   auth-service:
-    env_file: .env.development
+    env_file: .env
     container_name: auth-service
     build:
       context: ./auth-service
@@ -196,7 +180,7 @@ services:
       retries: 5
 
   notifications-service:
-    env_file: .env.development
+    env_file: .env
     container_name: notifications-service
     build:
       context: ./notifications-service
@@ -231,22 +215,19 @@ services:
       timeout: 5s
       retries: 5
 
-  # --- FRONTEND ---
-  # frontend-app:
-  #   build:
-  #     context: ./frontend-app
-  #   container_name: frontend-app
-  #   networks:
-  #     - gateway-app
-  #   ports:
-  #     - "3001:3000"
-  #   volumes:
-  #     - ./frontend-app:/app
-  #     - /app/node_modules
-  #     - /app/.next
-  #   environment:
-  #     - NEXT_PUBLIC_API_URL=http://localhost:3000/api
-  #   command: pnpm run dev
+
+  frontend-app:
+    build:
+      context: ./frontend-app
+      dockerfile: Dockerfile
+    container_name: frontend-app
+    networks:
+      - gateway-app
+    ports:
+      - "3001:80" 
+    restart: always
+    environment:
+      - VITE_API_URL=https://nexus.gatewayfabrication.com.mx/api
 
 # --- CONFIGURACIÓN DE RED Y VOLÚMENES ---
 networks:
