@@ -22,22 +22,19 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
+            # 1. Entrar a la carpeta
             cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-            echo "--- ¿QUÉ ARCHIVOS HAY AQUÍ? ---"
-            ls -la
+            # 2. Actualizar código
+            sudo -n git config --global --add safe.directory '*'
+            sudo -n git pull origin main
+            sudo -n git submodule update --init --recursive
 
-            echo "--- CONTENIDO DEL COMPOSE (PRIMERAS 10 LÍNEAS) ---"
-            head -n 10 docker-compose.yml || echo "EL ARCHIVO NO EXISTE"
 
-            # 2. Validar el compose antes de ejecutarlo
-            echo "--- VALIDACIÓN DE DOCKER COMPOSE ---"
-            sudo -n docker-compose config
+            sudo -n docker-compose -f compose.yml -p nexus-matrix down || true
+            sudo -n docker-compose -f compose.yml -p nexus-matrix up -d --build
 
-            # 3. Ejecutar el despliegue capturando errores
-            echo "--- INICIANDO DESPLIEGUE ---"
-            sudo -n docker-compose -p gateway-nexus up -d --build 2>&1
-
-            # 4. Verificación final de procesos
-            echo "--- LISTA TOTAL DE CONTENEDORES ---"
-            sudo -n docker ps -a
+            # 4. Limpieza y Verificación
+            sudo -n docker image prune -f
+            echo "--- CONTENEDORES LEVANTADOS ---"
+            sudo -n docker ps --filter "name=nexus-matrix"
