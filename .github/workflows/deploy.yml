@@ -23,14 +23,17 @@ jobs:
           port: 22
           script: |
 
-
             cd ~/nexus.gatewayfabrication.com.mx || cd ~/httpdocs/nexus.gatewayfabrication.com.mx || cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
-
-
-            pwd
-
 
             git config --global --add safe.directory '*'
 
-            # 4. Actualizamos
             git pull origin main
+            git submodule update --init --recursive
+
+            # Despliegue con Docker
+            # Usamos --env-file .env para asegurar que tome tus variables de producción
+            docker-compose down
+            docker-compose up -d --build
+
+            # Limpieza de imágenes "huérfanas" para ahorrar espacio en IONOS
+            docker image prune -f
