@@ -22,17 +22,15 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-
+            # 1. Navegar a la carpeta
             cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
+            /usr/bin/git config --global --add safe.directory '*'
+            /usr/bin/git pull origin main
+            /usr/bin/git submodule update --init --recursive
 
-            git pull origin main
-            git submodule update --init --recursive
-
-
-            # Usamos -n para que no se quede colgado pidiendo password
-            sudo -n docker-compose -f compose.yaml -p nexus-matrix up -d --build
-
+            sudo -n /usr/bin/docker-compose -f compose.yaml -p nexus-matrix down || true
+            sudo -n /usr/bin/docker-compose -f compose.yaml -p nexus-matrix up -d --build
 
             echo "--- ESTADO DE CONTENEDORES ---"
-            sudo -n docker ps --filter "name=nexus-matrix"
+            sudo -n /usr/bin/docker ps --filter "name=nexus-matrix"
