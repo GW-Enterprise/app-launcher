@@ -87,10 +87,6 @@ services:
       APP_VERSION: ${APP_VERSION}
       PORT: ${API_GATEWAY_PORT}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
-    volumes:
-      - ./api-gateway/:/app
-      - /app/node_modules
-      # - api-gateway-modules:/app/node_modules
     depends_on:
       nats-server:
         condition: service_started
@@ -118,10 +114,6 @@ services:
       PORT: ${TICKETS_SERVICE_PORT}
       DATABASE_URL: ${DATABASE_URL_TICKETS}
       TZ: America/Mexico_City
-    volumes:
-      - ./tickets-service/:/app
-      - /app/node_modules
-      - /app/generated
     depends_on:
       nats-server:
         condition: service_started
@@ -149,10 +141,6 @@ services:
       NATS_SERVERS: ${NATS_SERVERS}
       APP_VERSION: ${APP_VERSION}
       DATABASE_URL: ${DATABASE_URL_AUTH}
-    volumes:
-      - ./auth-service/:/app
-      - /app/node_modules
-      - /app/generated
     depends_on:
       nats-server:
         condition: service_started
@@ -189,9 +177,6 @@ services:
       IMAP_TENANT_ID: ${IMAP_TENANT_ID}
       IMAP_CLIENT_ID: ${IMAP_CLIENT_ID}
       IMAP_CLIENT_SECRET: ${IMAP_CLIENT_SECRET}
-    volumes:
-      - ./notifications-service/:/app
-      - /app/node_modules
     depends_on:
       nats-server:
         condition: service_started
