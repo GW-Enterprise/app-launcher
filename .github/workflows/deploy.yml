@@ -30,7 +30,7 @@ jobs:
             git pull origin main
             git submodule update --init --recursive
 
-            sudo -n docker compose -f compose.yml -p nexus-matrix down || true
-            sudo -n docker compose -f compose.yml -p nexus-matrix up -d --build
+            sudo -n docker compose -f compose.prod.yml -p nexus-matrix down || true
+            sudo -n docker compose -f compose.prod.yml -p nexus-matrix up -d --build
             echo "--- ESTADO DE CONTENEDORES ---"
             sudo -n docker ps --filter "name=nexus-matrix"

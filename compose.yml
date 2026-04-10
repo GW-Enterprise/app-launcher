@@ -101,6 +101,7 @@ services:
       NATS_SERVERS: ${NATS_SERVERS}
       APP_VERSION: ${APP_VERSION}
       PORT: ${API_GATEWAY_PORT}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     volumes:
       - ./api-gateway/:/app
       - /app/node_modules
@@ -227,7 +228,7 @@ services:
       - "3001:80" 
     restart: always
     environment:
-      - VITE_API_URL=https://nexus.gatewayfabrication.com.mx/api
+      - VITE_API_URL=http://localhost:3000/api
 
 # --- CONFIGURACIÓN DE RED Y VOLÚMENES ---
 networks:
