@@ -1,11 +1,11 @@
 #!/bin/sh
 set -e
 
-echo "Waiting for Postgres to be ready..."
+# echo "Waiting for Postgres to be ready..."
 
-until pg_isready -h localhost -U "$POSTGRES_USER" -d postgres; do
-  sleep 2
-done
+# until pg_isready -h localhost -U "$POSTGRES_USER" -d postgres; do
+#   sleep 2
+# done
 
 echo "Postgres is ready. Running init script..."
 
