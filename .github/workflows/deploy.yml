@@ -34,3 +34,6 @@ jobs:
             sudo -n docker compose -f compose.prod.yml -p nexus-matrix up -d --build
             echo "--- ESTADO DE CONTENEDORES ---"
             sudo -n docker ps --filter "name=nexus-matrix"
+
+            echo "--- LIMPIANDO IMAGENES HUERFANAS (BASURA) ---"
+            sudo -n docker image prune -f
