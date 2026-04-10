@@ -191,6 +191,8 @@ services:
     build:
       context: ./frontend-app
       dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${API_GATEWAY_URL}
     container_name: frontend-app
     networks:
       - gateway-app
