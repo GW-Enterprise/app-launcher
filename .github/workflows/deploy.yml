@@ -1,9 +1,7 @@
 name: Deploy Nexus Matrix
-
 on:
   push:
     branches: ["main"]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -14,7 +12,7 @@ jobs:
           submodules: "recursive"
           token: ${{ secrets.GH_PAT }}
 
-      - name: Ejecutar comandos en IONOS via SSH
+      - name: Ejecutar comandos en VPS via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -22,20 +20,27 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
+            set -e  # Detener si cualquier comando falla
+
             # 1. Navegar a la carpeta
             cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-
+            # 2. Actualizar código
             git config --global --add safe.directory '*'
             git fetch --all
             git reset --hard origin/main
-            git pull origin main
-            git submodule update --init --recursive
+            git submodule update --init --recursive --remote
 
-            sudo -n docker compose -f compose.prod.yml -p nexus-matrix down || true
-            sudo -n docker compose -f compose.prod.yml -p nexus-matrix up -d --build --force-recreate --remove-orphans
+            # 3. Bajar contenedores con el nombre de proyecto correcto
+            sudo -n docker compose -f compose.prod.yml -p nexus-matrix down --remove-orphans || true
+
+            # 4. Levantar todo
+            sudo -n docker compose -f compose.prod.yml -p nexus-matrix up -d --build --force-recreate
+
+            # 5. Estado final
             echo "--- ESTADO DE CONTENEDORES ---"
             sudo -n docker ps --filter "name=nexus-matrix"
 
-            echo "--- LIMPIANDO IMAGENES HUERFANAS (BASURA) ---"
+            # 6. Limpiar imágenes huérfanas
+            echo "--- LIMPIANDO IMAGENES HUERFANAS ---"
             sudo -n docker image prune -f
