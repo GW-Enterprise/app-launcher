@@ -205,7 +205,7 @@ services:
       - "3001:80" 
     restart: always
     environment:
-      - VITE_API_URL=${API_GATEWAY_URL}/api
+      - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
 
 # --- CONFIGURACIÓN DE RED Y VOLÚMENES ---
 networks:
