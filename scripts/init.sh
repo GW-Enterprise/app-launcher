@@ -42,6 +42,12 @@ BEGIN
       '$DB_SPECIFIC_USER',
       '$DB_SPECIFIC_PASSWORD'
     );
+  ELSE
+    EXECUTE format(
+      'ALTER ROLE %I WITH PASSWORD %L',
+      '$DB_SPECIFIC_USER',
+      '$DB_SPECIFIC_PASSWORD'
+    );
   END IF;
 END
 \$\$;
