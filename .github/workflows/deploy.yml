@@ -33,7 +33,7 @@ jobs:
             git submodule update --init --recursive
 
             sudo -n docker compose -f compose.prod.yml -p nexus-matrix down || true
-            DOCKER_BUILDKIT=0 sudo -n docker-compose -f compose.prod.yml -p nexus-matrix up -d --build --force-recreate --remove-orphans
+            sudo -n env DOCKER_BUILDKIT=0 docker compose -f compose.prod.yml -p nexus-matrix up -d --build --force-recreate --remove-orphans
             echo "--- ESTADO DE CONTENEDORES ---"
             sudo -n docker ps --filter "name=nexus-matrix"
 
