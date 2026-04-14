@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+export PGPASSWORD=$POSTGRES_PASSWORD
 
 echo "Waiting for Postgres to be ready..."
 
