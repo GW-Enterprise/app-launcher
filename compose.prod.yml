@@ -87,7 +87,7 @@ services:
       dockerfile: Dockerfile
       target: prod
     container_name: api-gateway
-    image: levirolea/api-gateway:${APP_VERSION}
+    image: api-gateway:${APP_VERSION}
     networks:
       - gateway-app
     ports:
@@ -113,7 +113,7 @@ services:
       context: ./tickets-service
       dockerfile: Dockerfile
       target: prod
-    image: levirolea/tickets-service:${APP_VERSION}
+    image: tickets-service:${APP_VERSION}
     networks:
       - gateway-app
     environment:
@@ -140,7 +140,7 @@ services:
       context: ./auth-service
       dockerfile: Dockerfile
       target: prod
-    image: levirolea/auth-service:${APP_VERSION}
+    image: auth-service:${APP_VERSION}
     networks:
       - gateway-app
     environment:
@@ -165,7 +165,7 @@ services:
       context: ./notifications-service
       dockerfile: Dockerfile
       target: prod
-    image: levirolea/notifications-service:${APP_VERSION}
+    image: notifications-service:${APP_VERSION}
     networks:
       - gateway-app
     environment:
