@@ -75,7 +75,6 @@ services:
         /scripts/init.sh &&
         wait
       "
-
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d postgres"]
       interval: 15s
@@ -221,14 +220,18 @@ services:
     build:
       context: ./frontend-app
       dockerfile: Dockerfile
+      target: dev
     container_name: frontend-app
+    volumes:
+      - ./frontend-app/:/app
+      - /app/node_modules
     networks:
       - gateway-app
     ports:
-      - "3001:80" 
+      - "5173:5173" 
     restart: always
     environment:
-      - VITE_API_URL=http://localhost:3000/api
+      - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
 
 # --- CONFIGURACIÓN DE RED Y VOLÚMENES ---
 networks:

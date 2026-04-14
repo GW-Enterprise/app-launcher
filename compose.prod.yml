@@ -29,9 +29,15 @@ services:
       REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
     volumes:
       - ./postgres_data_auth:/var/lib/postgresql/data
-      - ./scripts/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./scripts/init.sh:/scripts/init.sh
     ports:
       - "127.0.0.1:5432:5432"
+    command: >
+      sh -c "
+        docker-entrypoint.sh postgres &
+        /scripts/init.sh &&
+        wait
+      "
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d postgres"]
@@ -57,10 +63,15 @@ services:
       REPLICATION_USER: ${REPLICATION_USER}
     volumes:
       - ./postgres_data_tickets:/var/lib/postgresql/data
-      - ./scripts/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - ./scripts/init.sh:/scripts/init.sh
     ports:
       - "127.0.0.1:5433:5432"
-
+    command: >
+      sh -c "
+        docker-entrypoint.sh postgres &
+        /scripts/init.sh &&
+        wait
+      "
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d postgres"]
       interval: 15s
@@ -74,7 +85,6 @@ services:
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
-      # target: ${STAGE}
       target: prod
     container_name: api-gateway
     image: levirolea/api-gateway:${APP_VERSION}
@@ -92,7 +102,6 @@ services:
         condition: service_started
     restart: always
     healthcheck:
-      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]  # Ajusta el puerto si es necesario
       interval: 10s
       timeout: 5s
       retries: 5
@@ -103,7 +112,6 @@ services:
     build:
       context: ./tickets-service
       dockerfile: Dockerfile
-      # target: ${STAGE}
       target: prod
     image: levirolea/tickets-service:${APP_VERSION}
     networks:
@@ -121,7 +129,6 @@ services:
         condition: service_healthy
     restart: always
     healthcheck:
-      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -132,7 +139,6 @@ services:
     build:
       context: ./auth-service
       dockerfile: Dockerfile
-      # target: ${STAGE}
       target: prod
     image: levirolea/auth-service:${APP_VERSION}
     networks:
@@ -148,7 +154,6 @@ services:
         condition: service_healthy
     restart: always
     healthcheck:
-      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"] 
       interval: 10s
       timeout: 5s
       retries: 5
@@ -192,7 +197,7 @@ services:
       context: ./frontend-app
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=${API_GATEWAY_URL}
+        - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
     container_name: frontend-app
     networks:
       - gateway-app
@@ -200,7 +205,7 @@ services:
       - "3001:80" 
     restart: always
     environment:
-      - VITE_API_URL=${API_GATEWAY_URL}
+      - VITE_API_URL=${API_GATEWAY_URL}/api
 
 # --- CONFIGURACIÓN DE RED Y VOLÚMENES ---
 networks:
