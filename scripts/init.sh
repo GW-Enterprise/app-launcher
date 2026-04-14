@@ -63,7 +63,8 @@ if [ "$DB_EXISTS" != "1" ]; then
   echo "Creating database $POSTGRES_DB..."
   psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE \"$POSTGRES_DB\" OWNER \"$DB_SPECIFIC_USER\";"
 else
-  echo "Database $POSTGRES_DB already exists."
+  echo "Database $POSTGRES_DB already exists. Ensuring ownership..."
+  psql -U "$POSTGRES_USER" -d postgres -c "ALTER DATABASE \"$POSTGRES_DB\" OWNER TO \"$DB_SPECIFIC_USER\";"
 fi
 
 # ===============================
