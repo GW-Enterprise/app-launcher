@@ -35,16 +35,16 @@ services:
     command: >
       sh -c "
         docker-entrypoint.sh postgres &
-        /scripts/init.sh &&
+        sh /scripts/init.sh &&
         wait
       "
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d postgres"]
-      interval: 15s
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 20
+      start_period: 60s
 
   db-tickets:
     container_name: db-tickets
@@ -69,15 +69,15 @@ services:
     command: >
       sh -c "
         docker-entrypoint.sh postgres &
-        /scripts/init.sh &&
+        sh /scripts/init.sh &&
         wait
       "
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d postgres"]
-      interval: 15s
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 20
+      start_period: 60s
 
   # --- MICROSERVICIOS ---
   api-gateway:
