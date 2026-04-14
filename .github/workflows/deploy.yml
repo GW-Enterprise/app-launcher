@@ -27,6 +27,8 @@ jobs:
 
 
             git config --global --add safe.directory '*'
+            git fetch --all
+            git reset --hard origin/main
             git pull origin main
             git submodule update --init --recursive
 
