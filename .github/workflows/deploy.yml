@@ -20,27 +20,23 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            set -e  # Detener si cualquier comando falla
+            set -e
 
-            # 1. Navegar a la carpeta
             cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-            # 2. Actualizar código
+            # 1. Actualizar código
             git config --global --add safe.directory '*'
             git fetch --all
             git reset --hard origin/main
             git submodule update --init --recursive --remote
 
-            # 3. Bajar contenedores con el nombre de proyecto correcto
-            sudo -n docker compose -f compose.prod.yml -p nexus-matrix down --remove-orphans || true
+            # 2. Rebuilder y levantar solo lo que cambió
+            sudo -n docker compose -f compose.prod.yml -p nexus-matrix up -d --build --remove-orphans
 
-            # 4. Levantar todo
-            sudo -n docker compose -f compose.prod.yml -p nexus-matrix up -d --build --force-recreate
-
-            # 5. Estado final
+            # 3. Estado final
             echo "--- ESTADO DE CONTENEDORES ---"
             sudo -n docker ps --filter "name=nexus-matrix"
 
-            # 6. Limpiar imágenes huérfanas
+            # 4. Limpiar imágenes huérfanas
             echo "--- LIMPIANDO IMAGENES HUERFANAS ---"
             sudo -n docker image prune -f
