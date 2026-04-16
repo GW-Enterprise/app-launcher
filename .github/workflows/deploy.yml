@@ -45,23 +45,30 @@ jobs:
         run: |
           INCLUDES='[]'
 
-          if [ "${{ steps.filter.outputs.api-gateway }}" == "true" ]; then
-            INCLUDES=$(echo $INCLUDES | jq '. += [{"service":"api-gateway","context":"./api-gateway"}]')
-          fi
-          if [ "${{ steps.filter.outputs.auth-service }}" == "true" ]; then
-            INCLUDES=$(echo $INCLUDES | jq '. += [{"service":"auth-service","context":"./auth-service"}]')
-          fi
-          if [ "${{ steps.filter.outputs.notifications-service }}" == "true" ]; then
-            INCLUDES=$(echo $INCLUDES | jq '. += [{"service":"notifications-service","context":"./notifications-service"}]')
-          fi
-          if [ "${{ steps.filter.outputs.tickets-service }}" == "true" ]; then
-            INCLUDES=$(echo $INCLUDES | jq '. += [{"service":"tickets-service","context":"./tickets-service"}]')
-          fi
-          if [ "${{ steps.filter.outputs.frontend-app }}" == "true" ]; then
-            INCLUDES=$(echo $INCLUDES | jq '. += [{"service":"frontend-app","context":"./frontend-app"}]')
+          FORCE_ALL="false"
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            FORCE_ALL="true"
           fi
 
-          echo "matrix={\"include\":$INCLUDES}" >> $GITHUB_OUTPUT
+          if [ "${{ steps.filter.outputs.api-gateway }}" == "true" ] || [ "$FORCE_ALL" == "true" ]; then
+            INCLUDES=$(echo $INCLUDES | jq -c '. += [{"service":"api-gateway","context":"./api-gateway"}]')
+          fi
+          if [ "${{ steps.filter.outputs.auth-service }}" == "true" ] || [ "$FORCE_ALL" == "true" ]; then
+            INCLUDES=$(echo $INCLUDES | jq -c '. += [{"service":"auth-service","context":"./auth-service"}]')
+          fi
+          if [ "${{ steps.filter.outputs.notifications-service }}" == "true" ] || [ "$FORCE_ALL" == "true" ]; then
+            INCLUDES=$(echo $INCLUDES | jq -c '. += [{"service":"notifications-service","context":"./notifications-service"}]')
+          fi
+          if [ "${{ steps.filter.outputs.tickets-service }}" == "true" ] || [ "$FORCE_ALL" == "true" ]; then
+            INCLUDES=$(echo $INCLUDES | jq -c '. += [{"service":"tickets-service","context":"./tickets-service"}]')
+          fi
+          if [ "${{ steps.filter.outputs.frontend-app }}" == "true" ] || [ "$FORCE_ALL" == "true" ]; then
+            INCLUDES=$(echo $INCLUDES | jq -c '. += [{"service":"frontend-app","context":"./frontend-app"}]')
+          fi
+
+          # Output compacto en una sola línea (soluciona el error de GitHub)
+          MATRIX_JSON=$(jq -n -c --argjson inc "$INCLUDES" '{include: $inc}')
+          echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
 
           if [ "$INCLUDES" == "[]" ]; then
             echo "any_changed=false" >> $GITHUB_OUTPUT
@@ -70,7 +77,11 @@ jobs:
           fi
           
           # Pass infra down
-          echo "infra_changed=${{ steps.filter.outputs.infra }}" >> $GITHUB_OUTPUT
+          if [ "${{ steps.filter.outputs.infra }}" == "true" ] || [ "$FORCE_ALL" == "true" ]; then
+            echo "infra_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "infra_changed=false" >> $GITHUB_OUTPUT
+          fi
 
   # ─────────────────────────────────────────────────────────────
   # JOB 2: Build y push — solo los servicios que cambiaron
