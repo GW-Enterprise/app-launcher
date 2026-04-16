@@ -8,27 +8,87 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  # ─────────────────────────────────────────────────────────────
+  # JOB 1: Detectar qué servicios cambiaron en este push
+  # ─────────────────────────────────────────────────────────────
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      any_changed: ${{ steps.set-matrix.outputs.any_changed }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detectar archivos cambiados por servicio
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            api-gateway:
+              - 'api-gateway/**'
+            auth-service:
+              - 'auth-service/**'
+            notifications-service:
+              - 'notifications-service/**'
+            tickets-service:
+              - 'tickets-service/**'
+            frontend-app:
+              - 'frontend-app/**'
+            infra:
+              - 'compose.prod.yml'
+              - '.github/workflows/deploy.yml'
+
+      - name: Construir matriz dinámica con los servicios cambiados
+        id: set-matrix
+        run: |
+          INCLUDES='[]'
+
+          if [ "${{ steps.filter.outputs.api-gateway }}" == "true" ]; then
+            INCLUDES=$(echo $INCLUDES | jq '. += [{"service":"api-gateway","context":"./api-gateway"}]')
+          fi
+          if [ "${{ steps.filter.outputs.auth-service }}" == "true" ]; then
+            INCLUDES=$(echo $INCLUDES | jq '. += [{"service":"auth-service","context":"./auth-service"}]')
+          fi
+          if [ "${{ steps.filter.outputs.notifications-service }}" == "true" ]; then
+            INCLUDES=$(echo $INCLUDES | jq '. += [{"service":"notifications-service","context":"./notifications-service"}]')
+          fi
+          if [ "${{ steps.filter.outputs.tickets-service }}" == "true" ]; then
+            INCLUDES=$(echo $INCLUDES | jq '. += [{"service":"tickets-service","context":"./tickets-service"}]')
+          fi
+          if [ "${{ steps.filter.outputs.frontend-app }}" == "true" ]; then
+            INCLUDES=$(echo $INCLUDES | jq '. += [{"service":"frontend-app","context":"./frontend-app"}]')
+          fi
+
+          echo "matrix={\"include\":$INCLUDES}" >> $GITHUB_OUTPUT
+
+          if [ "$INCLUDES" == "[]" ]; then
+            echo "any_changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "any_changed=true" >> $GITHUB_OUTPUT
+          fi
+          
+          # Pass infra down
+          echo "infra_changed=${{ steps.filter.outputs.infra }}" >> $GITHUB_OUTPUT
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 2: Build y push — solo los servicios que cambiaron
+  # ─────────────────────────────────────────────────────────────
   build-and-push:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.any_changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
     strategy:
-      matrix:
-        include:
-          - service: api-gateway
-            context: ./api-gateway
-          - service: auth-service
-            context: ./auth-service
-          - service: notifications-service
-            context: ./notifications-service
-          - service: tickets-service
-            context: ./tickets-service
-          - service: frontend-app
-            context: ./frontend-app
+      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
 
     steps:
+      - name: Lowercase image name
+        run: echo "IMAGE_NAME=$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -58,15 +118,25 @@ jobs:
           build-args: |
             VITE_API_GATEWAY_URL=${{ secrets.VITE_API_GATEWAY_URL }}
 
+  # ─────────────────────────────────────────────────────────────
+  # JOB 3: Deploy al VPS — corre si hubo un build o si la infra cambió
+  # ─────────────────────────────────────────────────────────────
   deploy:
-    needs: build-and-push
+    needs: [detect-changes, build-and-push]
+    if: |
+      always() &&
+      (needs.detect-changes.result == 'success') &&
+      (
+        needs.build-and-push.result == 'success' ||
+        needs.detect-changes.outputs.infra_changed == 'true'
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Ejecutar comandos en VPS via SSH
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.HOST }}
           username: admin2
@@ -75,17 +145,19 @@ jobs:
           script: |
             set -e
             cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
-            
+
             # Login al registro en el servidor de forma permanente
             echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 1. Actualizar código (solo para el compose y configs)
+            # 1. Actualizar código (compose.prod.yml, configs, etc.)
             git fetch --all
             git reset --hard origin/main
-            
-            # 2. Descargar imágenes nuevas y levantar
+
+            # 2. Descargar solo las imágenes que cambiaron y levantar
+            #    docker compose pull compara image IDs: descarga solo las nuevas
+            #    docker compose up -d recrea solo los contenedores cuya imagen cambió
             sudo -n docker compose -f compose.prod.yml -p nexus-matrix pull
             sudo -n docker compose -f compose.prod.yml -p nexus-matrix up -d --remove-orphans
 
-            # 3. Limpiar imágenes huérfanas
+            # 3. Limpiar imágenes antiguas que ya no usa ningún contenedor
             sudo -n docker image prune -f
