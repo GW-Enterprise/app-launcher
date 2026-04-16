@@ -85,12 +85,8 @@ services:
   # --- MICROSERVICIOS ---
   api-gateway:
     env_file: .env
-    build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
-      target: prod
     container_name: api-gateway
-    image: api-gateway:${APP_VERSION}
+    image: ghcr.io/gw-enterprise/app-launcher/api-gateway:latest
     networks:
       - gateway-app
     ports:
@@ -112,11 +108,7 @@ services:
   tickets-service:
     env_file: .env
     container_name: tickets-service
-    build:
-      context: ./tickets-service
-      dockerfile: Dockerfile
-      target: prod
-    image: tickets-service:${APP_VERSION}
+    image: ghcr.io/gw-enterprise/app-launcher/tickets-service:latest
     networks:
       - gateway-app
     environment:
@@ -139,11 +131,7 @@ services:
   auth-service:
     env_file: .env
     container_name: auth-service
-    build:
-      context: ./auth-service
-      dockerfile: Dockerfile
-      target: prod
-    image: auth-service:${APP_VERSION}
+    image: ghcr.io/gw-enterprise/app-launcher/auth-service:latest
     networks:
       - gateway-app
     environment:
@@ -164,11 +152,7 @@ services:
   notifications-service:
     env_file: .env
     container_name: notifications-service
-    build:
-      context: ./notifications-service
-      dockerfile: Dockerfile
-      target: prod
-    image: notifications-service:${APP_VERSION}
+    image: ghcr.io/gw-enterprise/app-launcher/notifications-service:latest
     networks:
       - gateway-app
     environment:
@@ -196,12 +180,8 @@ services:
 
 
   frontend-app:
-    build:
-      context: ./frontend-app
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
     container_name: frontend-app
+    image: ghcr.io/gw-enterprise/app-launcher/frontend-app:latest
     networks:
       - gateway-app
     ports:
