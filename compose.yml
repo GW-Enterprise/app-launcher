@@ -50,6 +50,7 @@ services:
       retries: 5
       start_period: 60s
 
+
   db-tickets:
     container_name: db-tickets
     env_file: .env
@@ -70,6 +71,41 @@ services:
       - ./scripts/init.sh:/scripts/init.sh
     ports:
       - "5433:5432"
+    command: >
+      sh -c "
+        docker-entrypoint.sh postgres &
+        PID=$!;
+        /scripts/init.sh;
+        wait $$PID
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+
+  db-mant:
+    container_name: db-mant
+    env_file: .env
+    image: postgres:16.11-alpine3.23
+    restart: always
+    networks:
+      - gateway-app
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_MANT}
+      DB_SPECIFIC_USER: ${APP_USER_MANT}
+      DB_SPECIFIC_PASSWORD: ${APP_USER_MANT_PASSWORD}
+      REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
+      REPLICATION_USER: ${REPLICATION_USER}
+    volumes:
+      - ./postgres_data_mant:/var/lib/postgresql/data
+      - ./scripts/init.sh:/scripts/init.sh
+    ports:
+      - "5434:5432"
     command: >
       sh -c "
         docker-entrypoint.sh postgres &
@@ -218,6 +254,36 @@ services:
       timeout: 5s
       retries: 5
 
+  mant-service:
+    env_file: .env
+    container_name: mant-service
+    build:
+      context: ./mant-service
+      dockerfile: Dockerfile
+      # target: ${STAGE}
+      target: dev
+    image: levirolea/mant-service:${APP_VERSION}
+    networks:
+      - gateway-app
+    environment:
+      NATS_SERVERS: ${NATS_SERVERS}
+      APP_VERSION: ${APP_VERSION}
+      DATABASE_URL: ${DATABASE_URL_MANT}
+    volumes:
+      - ./mant-service/:/app
+      - /app/node_modules
+      - /app/generated
+    depends_on:
+      nats-server:
+        condition: service_started
+      db-mant:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      # test: ["CMD-SHELL", "curl -f http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend-app:
     build:
