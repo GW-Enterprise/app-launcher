@@ -13,3 +13,6 @@
 [submodule "notifications-service"]
 	path = notifications-service
 	url = https://github.com/GW-Enterprise/notifications-service.git
+[submodule "mant-service"]
+	path = mant-service
+	url = https://github.com/GW-Enterprise/mant-service.git
