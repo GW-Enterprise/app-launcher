@@ -21,12 +21,12 @@ Browser (port 5173)
     ▼
 frontend-app  ──HTTP──▶  api-gateway (port 3000)
                                │
-                    ┌──────────┼──────────┐
-                    │ NATS JetStream      │
-                    ▼                     ▼
-             auth-service          tickets-service
-                    │                     │
-             db-auth (5432)      db-tickets (5433)
+                    ┌──────────┼──────────┐──────────────┐
+                    │ NATS JetStream      │              │
+                    ▼                     ▼              ▼
+             auth-service          tickets-service    mant-service
+                    │                     │              │
+             db-auth (5432)      db-tickets (5433)    db-mant (5434)
 ```
 
 El api-gateway es el único servicio público. Todos los microservicios se comunican exclusivamente por NATS — nunca reciben conexiones HTTP directas.
@@ -97,7 +97,8 @@ JWT_REFRESH_SECRET=your_refresh_secret
 ### 3. Levantar el stack
 
 ```bash
-docker compose up
+docker compose up --build (DEV)
+docker compose -f compose.prod.yml up --build (PROD)
 ```
 
 El stack inicia en este orden: bases de datos → NATS → microservicios → api-gateway.
@@ -119,7 +120,7 @@ pnpm run dev   # http://localhost:5173
 docker compose up
 
 # Solo backend (sin frontend)
-docker compose up api-gateway auth-service tickets-service
+docker compose up api-gateway auth-service tickets-service mant-service
 
 # Ver logs de un servicio
 docker compose logs -f tickets-service
@@ -136,6 +137,7 @@ app-launcher/
 ├── api-gateway/        # HTTP Gateway (NestJS)
 ├── auth-service/       # Auth, usuarios, roles (NestJS NATS)
 ├── tickets-service/    # Tickets, SLA, categorías (NestJS NATS)
+├── tickets-service/    # Mant, Inventarios (NestJS NATS)
 ├── frontend-app/       # SPA (React + Vite)
 ├── scripts/            # init.sh para PostgreSQL
 ├── compose.yml         # Stack de desarrollo
