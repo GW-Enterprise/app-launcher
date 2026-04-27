@@ -158,27 +158,16 @@ jobs:
             set -e
             cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
-            # Login al registro en el servidor de forma permanente
+            # 1. Login al registro (sin sudo, admin2 está en grupo docker)
             echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 1. Actualizar código (compose.prod.yml, configs, etc.)
+            # 2. Actualizar código (postgres_data_* está en .gitignore, no se toca)
             git fetch --all
-            # Respaldar datos antes del reset
-            cp -r postgres_data_auth /tmp/postgres_data_auth_bak
-            cp -r postgres_data_tickets /tmp/postgres_data_tickets_bak
-
             git reset --hard origin/main
 
-            # Restaurar datos
-            cp -r /tmp/postgres_data_auth_bak postgres_data_auth
-            cp -r /tmp/postgres_data_tickets_bak postgres_data_tickets
-            # 2. Descargar solo las imágenes que cambiaron y levantar
-            #    docker compose pull compara image IDs: descarga solo las nuevas
-            #    docker compose up -d recrea solo los contenedores cuya imagen cambió
-            sudo chown -R admin2:psacln ./postgres_data_auth
-            sudo chown -R admin2:psacln ./postgres_data_tickets
-            sudo -n docker compose -f compose.prod.yml -p nexus-matrix pull
-            sudo -n docker compose -f compose.prod.yml -p nexus-matrix up -d --remove-orphans
+            # 3. Descargar imágenes actualizadas y recrear contenedores
+            sudo docker compose -f compose.prod.yml -p nexus-matrix pull
+            sudo docker compose -f compose.prod.yml -p nexus-matrix up -d --remove-orphans
 
-            # 3. Limpiar imágenes antiguas que ya no usa ningún contenedor
-            sudo -n docker image prune -f
+            # 4. Limpiar imágenes antiguas
+            sudo docker image prune -f
