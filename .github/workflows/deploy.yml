@@ -75,7 +75,7 @@ jobs:
           else
             echo "any_changed=true" >> $GITHUB_OUTPUT
           fi
-          
+
           # Pass infra down
           if [ "${{ steps.filter.outputs.infra }}" == "true" ] || [ "$FORCE_ALL" == "true" ]; then
             echo "infra_changed=true" >> $GITHUB_OUTPUT
@@ -163,8 +163,15 @@ jobs:
 
             # 1. Actualizar código (compose.prod.yml, configs, etc.)
             git fetch --all
+            # Respaldar datos antes del reset
+            cp -r postgres_data_auth /tmp/postgres_data_auth_bak
+            cp -r postgres_data_tickets /tmp/postgres_data_tickets_bak
+
             git reset --hard origin/main
 
+            # Restaurar datos
+            cp -r /tmp/postgres_data_auth_bak postgres_data_auth
+            cp -r /tmp/postgres_data_tickets_bak postgres_data_tickets
             # 2. Descargar solo las imágenes que cambiaron y levantar
             #    docker compose pull compara image IDs: descarga solo las nuevas
             #    docker compose up -d recrea solo los contenedores cuya imagen cambió
