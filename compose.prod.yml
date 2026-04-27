@@ -28,7 +28,7 @@ services:
       REPLICATION_USER: ${REPLICATION_USER}
       REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
     volumes:
-      - /home/nexus-matrix/postgres_data_auth:/var/lib/postgresql/data
+      - ./postgres_data_auth:/var/lib/postgresql/data
       - ./scripts/init.sh:/scripts/init.sh
     ports:
       - "127.0.0.1:5432:5432"
@@ -63,7 +63,7 @@ services:
       REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
       REPLICATION_USER: ${REPLICATION_USER}
     volumes:
-      - /home/nexus-matrix/postgres_data_tickets:/var/lib/postgresql/data
+      - ./postgres_data_tickets:/var/lib/postgresql/data
       - ./scripts/init.sh:/scripts/init.sh
     ports:
       - "127.0.0.1:5433:5432"
