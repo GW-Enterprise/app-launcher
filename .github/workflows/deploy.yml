@@ -175,6 +175,8 @@ jobs:
             # 2. Descargar solo las imágenes que cambiaron y levantar
             #    docker compose pull compara image IDs: descarga solo las nuevas
             #    docker compose up -d recrea solo los contenedores cuya imagen cambió
+            sudo chown -R admin2:psacln ./postgres_data_auth
+            sudo chown -R admin2:psacln ./postgres_data_tickets
             sudo -n docker compose -f compose.prod.yml -p nexus-matrix pull
             sudo -n docker compose -f compose.prod.yml -p nexus-matrix up -d --remove-orphans
 
