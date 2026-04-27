@@ -159,7 +159,7 @@ jobs:
             cd /var/www/vhosts/gatewayfabrication.com.mx/nexus.gatewayfabrication.com.mx
 
             # Login al registro en el servidor de forma permanente
-            echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "${{ secrets.GH_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # 1. Actualizar código (compose.prod.yml, configs, etc.)
             git fetch --all
