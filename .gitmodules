@@ -1,18 +1,18 @@
 [submodule "api-gateway"]
 	path = api-gateway
-	url = https://github.com/GW-Enterprise/api-gateway.git
+	url = git@github.com:GW-Enterprise/api-gateway.git
 [submodule "tickets-service"]
 	path = tickets-service
-	url = https://github.com/GW-Enterprise/tickets-service.git
+	url = git@github.com:GW-Enterprise/tickets-service.git
 [submodule "auth-service"]
 	path = auth-service
-	url = https://github.com/GW-Enterprise/auth-service.git
+	url = git@github.com:GW-Enterprise/auth-service.git
 [submodule "frontend-app"]
 	path = frontend-app
-	url = https://github.com/GW-Enterprise/frontend-app.git
+	url = git@github.com:GW-Enterprise/frontend-app.git
 [submodule "notifications-service"]
 	path = notifications-service
-	url = https://github.com/GW-Enterprise/notifications-service.git
+	url = git@github.com:GW-Enterprise/notifications-service.git
 [submodule "mant-service"]
 	path = mant-service
-	url = https://github.com/GW-Enterprise/mant-service.git
+	url = git@github.com:GW-Enterprise/mant-service.git
