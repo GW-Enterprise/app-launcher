@@ -129,7 +129,7 @@ jobs:
               --cache-from type=gha \
               --cache-to type=gha,mode=max \
               --build-arg VITE_API_GATEWAY_URL=${{ secrets.VITE_API_GATEWAY_URL }} \
-              .; then
+              "${{ matrix.context }}"; then
               echo "Build exitoso"
               exit 0
             fi
